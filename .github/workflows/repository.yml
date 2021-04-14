@@ -31,7 +31,8 @@ jobs:
         with:
           path: |
             /tmp/iso-*.txt
-            /tmp/alexa/*
+            /tmp/alexa
+          key: tmp-files-${{ hashFiles('/tmp/alexa/*')}}
       - name: Validate JSON structure
         run:  bundle exec ruby ./tests/validate-json.rb
       - name: Validate Region codes
@@ -44,7 +45,7 @@ jobs:
         run:  tests/file-extensions.sh
 
   build:
-    needs: tests
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Generate API files
