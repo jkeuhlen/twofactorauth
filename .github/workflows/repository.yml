@@ -1,0 +1,94 @@
+name: Repository builds and tests
+on: [push]
+
+jobs:
+
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: vendor/cache
+          key: ${{ runner.os }}-bundle-${{ hashFiles('**/Gemfile.lock') }}
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+      - name: Install dependencies
+        run: |
+          bundle config set path 'vendor/cache'
+          bundle config set cache_all true
+          bundle install --jobs 4 --retry 3
+          npm i babel-minify
+          sudo apt install webp -y &
+          [ -d "vendor/cache" ] || { bundle package; }
+
+  tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: |
+            /tmp/iso-*.txt
+            /tmp/alexa/*
+      - name: Validate JSON structure
+        run:  bundle exec ruby ./tests/validate-json.rb
+      - name: Validate Region codes
+        run:  bundle exec ruby ./tests/region-codes.rb
+      - name: Validate Language codes
+        run: bundle exec ruby ./tests/language-codes.rb
+      - name: Validate Entry tags
+        run: bundle exec ruby ./tests/entry-tags.rb
+      - name: Validate file extensions
+        run:  tests/file-extensions.sh
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate API files
+      run: |
+        mkdir -p api/v{1,2,3}
+        ./scripts/APIv{1,2,3}.rb
+        ./_deployment/used_regions.rb > api/v{2,3}/regions.json
+      - name: Build the site
+        run: bundle exec jekyll build --config _config.yml,_deployment/config-production.yml
+
+  publish:
+    needs: build
+    if: ${{ github.ref == 'refs/heads/master' }} && ${{ github.repository == '2factorauth/twofactorauth'}} && ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    env:
+      env: production
+    steps:
+    - name: Build region sites
+        run: |
+          ./_deployment/regions.rb --production
+    - name: Import PGP key
+      id: pgp
+      uses: crazy-max/ghaction-import-gpg@v3
+      with:
+        gpg-private-key: ${{ secrets.pgp_key }}
+        passphrase: ${{ secrets.pgp_passphrase }}
+    - name: Sign API files
+      run: ./scripts/sign.sh ${{ secrets.pgp_passphrase }} ${{ steps.pgp.outputs.keyid }}
+    - name: Generate webp images
+        run: ./scripts/webp.sh
+    - name: Build the site
+        run: bundle exec jekyll build --config _config.yml
+    - name: Minify JavaScript files
+        run: ./_deployment/minify-js.sh
+    - name: Test HTML files
+        run: bundle exec rake proof
+        env:
+          NOKOGIRI_USE_SYSTEM_LIBRARIES: true
+    - name: Deploy to GitHub Pages
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v2
+        with:
+          target_branch: gh-pages
+          build_dir: _site
+          fqdn: ${{ secrets.domain }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
