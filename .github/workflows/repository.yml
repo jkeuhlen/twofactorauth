@@ -22,11 +22,20 @@ jobs:
           npm i babel-minify
           sudo apt install webp -y &
           [ -d "vendor/cache" ] || { bundle package; }
+      - uses: actions/upload-artifact@v2
+        with:
+          name: setup
+          path: .
 
   tests:
     needs: setup
     runs-on: ubuntu-latest
     steps:
+      - name: List files
+        run: ls -la .
+      - uses: actions/download-artifact@v2
+        with:
+          name: setup
       - uses: actions/cache@v2
         with:
           path: |
@@ -48,6 +57,9 @@ jobs:
     needs: setup
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: setup
       - name: Generate API files
         run: |
           mkdir -p api/v{1,2,3}
@@ -55,14 +67,21 @@ jobs:
           ./_deployment/used_regions.rb > api/v{2,3}/regions.json
       - name: Build the site
         run: bundle exec jekyll build --config _config.yml,_deployment/config-production.yml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: .
 
   publish:
-    needs: build
+    needs: [tests, build]
     if: ${{ github.ref == 'refs/heads/master' }} && ${{ github.repository == '2factorauth/twofactorauth'}} && ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     env:
       env: production
     steps:
+    - uses: actions/download-artifact@v2
+        with:
+          name: build
     - name: Build region sites
       run: |
         ./_deployment/regions.rb --production
