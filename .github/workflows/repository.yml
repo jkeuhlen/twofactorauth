@@ -80,8 +80,8 @@ jobs:
       env: production
     steps:
     - uses: actions/download-artifact@v2
-        with:
-          name: build
+      with:
+        name: build
     - name: Build region sites
       run: |
         ./_deployment/regions.rb --production
