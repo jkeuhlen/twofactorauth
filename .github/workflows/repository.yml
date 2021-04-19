@@ -1,41 +1,12 @@
 name: Repository builds and tests
-on: [push]
+on: [ push, pull_request ]
 
 jobs:
-
-  setup:
+  tests:
+    container: 2factorauth/twofactorauth:4.0
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: vendor/cache
-          key: ${{ runner.os }}-bundle-${{ hashFiles('**/Gemfile.lock') }}
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.7
-      - name: Install dependencies
-        run: |
-          bundle config set path 'vendor/cache'
-          bundle config set cache_all true
-          bundle install --jobs 4 --retry 3
-          npm i babel-minify
-          sudo apt install webp -y &
-          [ -d "vendor/cache" ] || { bundle package; }
-      - uses: actions/upload-artifact@v2
-        with:
-          name: setup
-          path: .
-
-  tests:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: List files
-        run: ls -la .
-      - uses: actions/download-artifact@v2
-        with:
-          name: setup
       - uses: actions/cache@v2
         with:
           path: |
@@ -54,37 +25,51 @@ jobs:
         run:  tests/file-extensions.sh
 
   build:
-    needs: setup
+    container: 2factorauth/twofactorauth:4.0
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: setup
+      - uses: actions/checkout@v2
       - name: Generate API files
         run: |
-          mkdir -p api/v{1,2,3}
-          ./scripts/APIv{1,2,3}.rb
-          ./_deployment/used_regions.rb > api/v{2,3}/regions.json
+          mkdir -p api/v1
+          mkdir -p api/v2
+          mkdir -p api/v3
+          ./scripts/APIv1.rb
+          ./scripts/APIv2.rb
+          ./scripts/APIv3.rb
       - name: Build the site
-        run: bundle exec jekyll build --config _config.yml,_deployment/config-production.yml
-      - uses: actions/upload-artifact@v2
+        run: bundle exec jekyll build --config _config.yml
+      - name: Create Artifact
+        if: |
+          github.ref == 'refs/heads/master' &&
+          github.repository == '2factorauth/twofactorauth' &&
+          github.event_name == 'push'
+        run: zip -rz0 build.zip .
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        if: |
+          github.ref == 'refs/heads/master' &&
+          github.repository == '2factorauth/twofactorauth' &&
+          github.event_name == 'push'
         with:
           name: build
-          path: .
+          path: build.zip
 
   publish:
-    needs: [tests, build]
-    if: ${{ github.ref == 'refs/heads/master' }} && ${{ github.repository == '2factorauth/twofactorauth'}} && ${{ github.event_name == 'push' }}
+    needs: [ tests, build ]
+    if: |
+          github.ref == 'refs/heads/master' &&
+          github.repository == '2factorauth/twofactorauth' &&
+          github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
-      env: production
+      JEKYLL_ENV: production
     steps:
     - uses: actions/download-artifact@v2
       with:
         name: build
     - name: Build region sites
-      run: |
-        ./_deployment/regions.rb --production
+      run: ./scripts/regions.rb
     - name: Import PGP key
       id: pgp
       uses: crazy-max/ghaction-import-gpg@v3
@@ -96,9 +81,9 @@ jobs:
     - name: Generate webp images
       run: ./scripts/webp.sh
     - name: Build the site
-      run: bundle exec jekyll build --config _config.yml
+      run: bundle exec jekyll build
     - name: Minify JavaScript files
-      run: ./_deployment/minify-js.sh
+      run: ./scripts/minify-js.sh
     - name: Test HTML files
       run: bundle exec rake proof
       env:

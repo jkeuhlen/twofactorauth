@@ -11,7 +11,7 @@ theme_color: "#39CCCC"
 exclude:
   - EXCLUSION.md
   - Gemfile
-  - *.lock
+  - "*.lock"
   - LICENSE
   - README.md
   - Rakefile
@@ -19,5 +19,5 @@ exclude:
   - scripts/
   - tests/
   - api/v2/README.md
-  - .*
+  - ".*"
 theme: null
