@@ -3,6 +3,7 @@ on: [ push, pull_request ]
 jobs:
 
   tests:
+    name: Tests
     container: 2factorauth/twofactorauth:4.0
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +26,7 @@ jobs:
         run:  tests/file-extensions.sh
 
   build:
+    name: Build
     container: 2factorauth/twofactorauth:4.0
     runs-on: ubuntu-latest
     steps:
@@ -56,6 +58,7 @@ jobs:
           path: build.zip
 
   publish:
+    name: Publish build
     needs: [ tests, build ]
     if: |
           github.ref == 'refs/heads/master' &&
