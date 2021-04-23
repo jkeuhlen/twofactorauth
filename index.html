@@ -17,7 +17,7 @@ layout: default
 <!-- Categories list -->
 <div class="row justify-content-start category-row">
   {% assign keywords = site.data.categories %}
-  {% assign entries = site.data.all %}
+  {% assign entries = site.data.all | sort %}
   {% assign keywords_length  = keywords | size %}
 
   <!-- Category loop -->
@@ -40,7 +40,7 @@ layout: default
     <!-- Display mobile category button -->
     {% include category-button.html category-param=keyword viewport="mobile" %}
 
-    {% include mobile-table.html category-param=keyword entries=entries %}
+    <!-- Display desktop table -->
     {% include desktop-table.html category-param=keyword entries=entries %}
 
   {% endfor %}
