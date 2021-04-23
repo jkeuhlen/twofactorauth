@@ -6,7 +6,7 @@
   <table class="table table-hover table-bordered table-bordered">
     <thead class="sticky-top">
       <tr>
-        <th scope="col">Name</th>
+        <th scope="col"></th>
         <th scope="col" class="icon-cell">Docs</th>
         <th scope="col" class="icon-cell">SMS</th>
         <th scope="col" class="icon-cell">Phone Call</th>
@@ -65,7 +65,7 @@
             <td class="icon-cell">
               {% if tfa contains "phone" %}
                 <i class="tfa-icon fas fa-check"></i>
-                {%endif%}</td>
+                {%endif%}
             </td>
 
             <td class="icon-cell">
@@ -103,19 +103,19 @@
             <td colspan="6">
               Tell them to support 2FA!
               <div class="social-button-group">
-                {% if website.twitter %}
+                {% if website.contact.twitter %}
                   <div class="twitter-button social-button btn" data-twitter="{{ website.twitter }}" data-lang="{{ website.lang }}">
                     <i class="fab fa-twitter"></i>
                     On Twitter
                   </div>
                 {% endif %}
-                {% if website.facebook %}
+                {% if website.contact.facebook %}
                   <div class="facebook-button social-button btn" data-facebook="{{ website.facebook }}">
                     <i class="fab fa-facebook-f"></i>
                     On Facebook
                   </div>
                 {% endif %}
-                {% if website.email_address %}
+                {% if website.contact.email_address %}
                   <div class="email-button social-button btn" data-email="{{ website.email_address }}" data-lang="{{ website.lang }}">
                     <i class="fas fa-envelope"></i>
                     Via Email</div>
