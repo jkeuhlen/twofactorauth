@@ -1,12 +1,13 @@
-{% assign section_id = include.id-param %}
-{% assign section_title = include.title-param %}
+{% assign category_name = include.category-param %}
+{% assign category_data = include.category-param %}
+{% assign entries = inculude.entries %}
 
-<div id="{{section_id}}-table" class="collapse category-table desktop-only">
-  <a id="{{section_id}}" class="category-href"></a>
+<div id="{{category}}-table" class="collapse category-table desktop-only">
+  <a id="{{category}}" class="category-href"></a>
   <table class="table table-hover table-bordered table-bordered">
     <thead class="sticky-top">
       <tr>
-        <th scope="col">{{ section_title }}</th>
+        <th scope="col">Name</th>
         <th scope="col" class="icon-cell">Docs</th>
         <th scope="col" class="icon-cell">SMS</th>
         <th scope="col" class="icon-cell">Phone Call</th>
@@ -16,8 +17,10 @@
       </tr>
     </thead>
     <tbody class="searchContainer">
-      {% for website in site.data[section_id].websites %}
-
+      {% for _website in entries %}
+       {% if website[1].keywords contains keyword[0] %}
+        {% assign website_name = _website[0] %}
+        {% assign website = _website[1] %}
         <tr class="table-{% if website.tfa %}success{%else %}danger{% endif %}">
 
           <td>
@@ -25,8 +28,8 @@
             <div class="row no-gutters">
               <picture>
                 {% if website.img contains ".png" %}
-                {% assign webp = website.img | replace: ".png", ".webp" %}
-                <source data-srcset="/img/{{section_id}}/{{webp}} 1x" type="image/webp">
+                  {% assign webp = website.img | replace: ".png", ".webp" %}
+                  <source data-srcset="/img/{{section_id}}/{{webp}} 1x" type="image/webp">
                 {% endif %}
                 <img class="logo lazyload{% if website.no_img_border %} no-border{%endif%}" data-src="/img/{{ section_id }}/{{ website.img }}" src="/img/placeholder.png" alt="">
               </picture>
@@ -117,6 +120,7 @@
             </td>
           {% endif %}
         </tr>
+        {% endif %}
       {% endfor %}
     </tbody>
   </table>

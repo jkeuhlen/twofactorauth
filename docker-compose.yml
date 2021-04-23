@@ -1,0 +1,9 @@
+version: '3'
+services:
+  twofactorauth:
+    image: 2factorauth/twofactorauth:4.0
+    volumes:
+      - ./:/twofactorauth
+    ports:
+      - 4000:4000
+    tty: true

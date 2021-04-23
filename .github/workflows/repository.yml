@@ -1,7 +1,7 @@
 name: Repository builds and tests
 on: [ push, pull_request ]
-
 jobs:
+
   tests:
     container: 2factorauth/twofactorauth:4.0
     runs-on: ubuntu-latest
