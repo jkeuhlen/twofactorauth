@@ -17,11 +17,18 @@ layout: default
 <!-- Categories list -->
 <div class="row justify-content-start category-row row-cols-1 row-cols-md-5">
   {% assign keywords = site.data.categories | sort %}
-  {% assign entries = site.data.all | sort %}
+  {% assign all_entries = site.data.all %}
   {% assign keywords_length  = keywords | size %}
 
   <!-- Category loop -->
   {% for keyword in keywords %}
+
+    {% assign entries = "" | split: ',' %}
+    {% for entry in all_entries %}
+      {% if entry[1].keywords contains keyword[0] %}
+        {% assign entries = entries | push: entry %}
+      {% endif %}
+    {% endfor %}
 
     {% assign md = forloop.index | modulo: 6 %}
 
@@ -43,7 +50,10 @@ layout: default
     {% include category-button.html category-param=keyword viewport="mobile" %}
 
     <!-- Display desktop table -->
-    {% include desktop-table.html category-param=keyword entries=entries %}
+    {% include desktop-table.html category=keyword entries=entries %}
+
+    <!-- Display mobile table -->
+    {% include mobile-table.html category=keyword entries=entries %}
 
   {% endfor %}
 </div>

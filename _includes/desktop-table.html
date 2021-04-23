@@ -1,12 +1,10 @@
-{% assign category = include.category-param[0] %}
 {% assign entries = include.entries %}
-
-<div id="{{category}}-table" class="collapse category-table desktop-only">
-  <a id="{{category}}" class="category-href"></a>
+<div id="{{ include.category[0] }}-table" class="collapse category-table desktop-only">
+  <a id="{{ include.category[0] }}" class="category-href"></a>
   <table class="table table-hover table-bordered table-bordered">
     <thead class="sticky-top">
       <tr>
-        <th scope="col"></th>
+        <th scope="col">{{ include.category[1].title }}</th>
         <th scope="col" class="icon-cell">Docs</th>
         <th scope="col" class="icon-cell">SMS</th>
         <th scope="col" class="icon-cell">Phone Call</th>
@@ -17,26 +15,25 @@
     </thead>
     <tbody class="searchContainer">
       {% for _website in entries %}
-       {% if _website[1].keywords contains keyword[0] %}
-        {% assign website_name = _website[0] %}
+        {% assign name = _website[0] %}
         {% assign website = _website[1] %}
-        <tr class="table-{% if website.tfa %}success{%else %}danger{% endif %}">
+        <tr class="table-{% if website.tfa %}success{% else %}danger{% endif %}">
 
           <td>
-            <div class="searchWords" style="display: none;">{{ website_name }} {{ website.domain }}{% for item in website.tfa %} 2fa:{{ item }}{% endfor %}</div>
+            <div class="searchWords" style="display: none;">{{ name }} {{ website.domain }}{% for item in website.tfa %} 2fa:{{ item }}{% endfor %}</div>
             <div class="row no-gutters">
-              <a class="site-name {% if website.notes %}exception-site{% endif %}" href="https://{{ website.domain }}">
+              <a class="site-name {% if website.notes %}exception-site{% endif %}" href="{% if website.url %}{{ website.url }}{% else %}https://{{ website.domain }}{% endif %}">
               <!-- Image -->
               {% assign letter = website.domain | slice: 0 | downcase | append: "/" %}
               {% if website.img %}
-              {% assign image = website.img | prepend: letter %}
+                {% assign image = website.img | prepend: letter %}
               {% else %}
-              {% assign image = website.domain | append: ".svg" | prepend: letter %}
+                {% assign image = website.domain | append: ".svg" | prepend: letter %}
               {% endif %}
 
               <img class="logo lazyload" data-src="/img/{{ image }}" alt="">
 
-              {{ website_name }}</a>
+              {{ name }}</a>
 
               {% if website.notes %}
                 <i class="fas fa-exclamation-triangle exception" data-content="{{ website.notes }}"></i>
@@ -123,7 +120,6 @@
             </td>
           {% endif %}
         </tr>
-        {% endif %}
       {% endfor %}
     </tbody>
   </table>
