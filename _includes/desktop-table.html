@@ -23,8 +23,9 @@
         <tr class="table-{% if website.tfa %}success{%else %}danger{% endif %}">
 
           <td>
-            <div class="searchWords" style="display: none;">{{ website.name }}&nbsp;{{ website.url }}&nbsp;{% for item in website.tfa %} 2fa:{{ item }}{% endfor %}</div>
+            <div class="searchWords" style="display: none;">{{ website_name }} {{ website.domain }}{% for item in website.tfa %} 2fa:{{ item }}{% endfor %}</div>
             <div class="row no-gutters">
+              <a class="site-name {% if website.notes %}exception-site{% endif %}" href="https://{{ website.domain }}">
               <!-- Image -->
               {% assign letter = website.domain | slice: 0 | downcase | append: "/" %}
               {% if website.img %}
@@ -35,12 +36,10 @@
 
               <img class="logo lazyload" data-src="/img/{{ image }}" alt="">
 
-              {{ website_name }}
+              {{ website_name }}</a>
 
-              <a class="site-name {% if website.exception %}exception-site{% endif %}" href="{{ website.url }}">{{ website.name }}</a>
-
-              {% if website.exception %}
-                <i class="fas fa-exclamation-triangle exception" data-content="{{ website.exception }}"></i>
+              {% if website.notes %}
+                <i class="fas fa-exclamation-triangle exception" data-content="{{ website.notes }}"></i>
               {% endif %}
             </div>
           </td>
@@ -49,8 +48,8 @@
             {% assign tfa = website.tfa %}
 
             <td class="icon-cell">
-              {% if website.doc %}
-                <a href="{{ website.doc }}">
+              {% if website.documentation %}
+                <a href="{{ website.documentation }}">
                   <i class="fas fa-book"></i>
                 </a>
               {% endif %}
@@ -76,7 +75,7 @@
 
             <td class="icon-cell">
               <div class="row">
-                {% if tfa contains "hardware" %}
+                {% if tfa contains "custom-hardware" %}
                   <i class="tfa-icon fas fa-check col"></i>
                 {% endif %}
 
@@ -93,7 +92,7 @@
                 {% if tfa contains "totp" %}
                   <i class="tfa-icon fas fa-check col"></i>
                 {% endif %}
-                {% if tfa contains "proprietary" %}
+                {% if tfa contains "custom-software" %}
                   <i class="tfa-icon fas fa-info col" title="Proprietary software based 2FA"></i>
                 {% endif %}
               </div>
