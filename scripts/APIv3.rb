@@ -9,4 +9,4 @@ Dir.glob('entries/*/*.json') { |file| all[JSON.parse(File.read(file)).keys[0]] =
 all.sort.to_h.each do |k, v|
   v['tfa']&.each { |method| (tfa[method].nil? ? tfa[method] = { k => v } : tfa[method][k] = v) }
 end
-{ 'all' => all }.merge(tfa).each { |k, v| File.open("api/v3/#{k}.json", 'w') { |file| file.write v.to_json } }
+{ 'all' => all }.merge(tfa).each { |k, v| File.open("api/v3/#{k}.json", 'w') { |file| file.write v.sort.to_json } }
